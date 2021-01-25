@@ -1,0 +1,23 @@
+* {
+    margin: 0;
+    padding:0;
+}
+h1 {
+    font-family: 'Kaushan Script', cursive;
+    color: #575757;
+    font-size:45pt;
+}
+a {
+	font-family: 'Kaushan Script', cursive;
+}
+body {
+    background-color: lightgray;
+}
+#container{
+	background-color: lightgray;
+	text-align: center; 
+}
+#github {
+	float: left;
+	margin-top: 35em
+}
