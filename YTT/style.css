@@ -17,7 +17,10 @@ body {
 	background-color: lightgray;
 	text-align: center; 
 }
-#github {
-	float: left;
-	margin-top: 35em
+#footerDiv{
+  position: fixed;
+  left: 0;
+  bottom: 2%;
+  width: 98%;
+  text-align: right;
 }
