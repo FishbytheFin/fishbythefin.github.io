@@ -1,0 +1,11 @@
+body {
+  font-family: 'Varela Round', sans-serif;
+}
+a {
+  font-size: 24px;
+}
+#notMainDiv {
+	position: fixed;
+	bottom: 0%;
+	width: 100%;
+}
