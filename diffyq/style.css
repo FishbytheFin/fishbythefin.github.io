@@ -1,4 +1,48 @@
 html {
   height: 100%;
   width: 100%;
+  overflow: hidden;
+}
+
+body {
+    padding: 0%;
+  margin: 0%;
+
+    width: 100%;
+    height: 100%;
+
+    text-align: center;
+  overflow: hidden;
+  }
+
+button {
+  aspect-ratio : 1 / 1;
+  height: 10%;
+  margin: 20%;
+  font-family: "Poppins", sans-serif;
+  font-weight: 800;
+  font-style: normal;
+}
+
+  
+#buttons{
+  background-color: #fffb8f;
+  
+  padding: 0%;
+  margin: 0%;
+  float: left;
+  display:inline-block;
+  height: 100%;
+  width: 50%;
+}
+ #hint{
+   font-family: "Poppins", sans-serif;
+   font-weight: 800;
+   font-style: normal;
+   padding: 0%;
+   margin: 0%;
+    float:right; display:inline-block;
+    height: 100%;
+    width: 50%;
+   background-color: #b69cff;
 }
