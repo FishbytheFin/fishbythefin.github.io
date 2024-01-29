@@ -22,6 +22,45 @@ function playAd0() {
   }, (1000*videoTimes[index]));
 }
 
+function playAd1() {
+  
+  const text1 = document.createElement('div');
+  const adText = document.createTextNode("A short ad will play before recieving the next hint:");
+  text1.appendChild(adText);
+  hintDiv.appendChild(text1);
+  
+  const video = document.createElement('video');
+  let index = Math.floor(Math.random()*videos.length);
+  video.src = videos[index];
+  video.controls = false;
+  hintDiv.appendChild(video);
+  video.play();
+  
+  setTimeout(() => {
+    reveal(video, hints[1]);
+  }, (1000*videoTimes[index]));
+}
+
+function playAd2() {
+  
+  const text1 = document.createElement('div');
+  const adText = document.createTextNode("A short ad will play before recieving the next hint:");
+  text1.appendChild(adText);
+  hintDiv.appendChild(text1);
+  
+  const video = document.createElement('video');
+  let index = Math.floor(Math.random()*videos.length);
+  video.src = videos[index];
+  video.controls = false;
+  hintDiv.appendChild(video);
+  video.play();
+  
+  setTimeout(() => {
+    reveal(video, hints[2]);
+  }, (1000*videoTimes[index]));
+}
+
+
 function reveal(video, hint) {
   video.pause();
   video.display = 'none';
