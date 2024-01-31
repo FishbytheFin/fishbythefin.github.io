@@ -1,4 +1,4 @@
-const hints = ["Hint #1: Teachers wouldn't like you interupting their class.", "Hint #2: You really need a hint for this? Too bad.", "Hint #3: You have the keys, you can find the car buy making it honk."];
+const hints = ["Hint #1: The teacher's room is in the 100's wing and they don't have a first period class.", "Hint #2: Rho, rho rho your boat!", "Hint #3: You have the keys, you can find the car buy making it honk. It's in the north commons parking lot."];
 const videos = ["videos/54.mp4", "videos/16.mp4", "videos/38.mp4"];
 const videoTimes = [54, 16, 38];
 const hintDiv = document.getElementById("hint");
