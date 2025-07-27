@@ -1,28 +1,172 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width">
-    <title>Quote's from High School Students</title>
-    <link href="style.css" rel="stylesheet" type="text/css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
-  </head>
-  <body id="body">
-    <h1>Quote's from High School Students</h1>
-   <ul>
-     <li>“Math is my favorite subject” - Finnegan Wood, 10th grade</li>
-      <li>“Math is undeniably the most important subject” - Finnegan Wood, 10th grade</li>
-      <li>“Math is more important than sleep and video games” - Finnegan Wood, 10th grade</li>
-      <li>“Math is like good and stuff” - Finnegan Wood, 10th grade</li>
-      <li>“Math is... my favorite subject” - Maggie Wood, 12th grade</li>
-      <li>“I would rather study math than any other subject in school. It’s also the most important by far” - Finnegan Wood, 10th grade</li>
-   </ul>
-   <div id="notMainDiv">
-   <input id="seizureBox" type="checkbox" name="seizure_mode" value="Seizure">Seizure Mode</input><br>
-   <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">More Quotes!</a>
-   </div>
-   <script type="text/javascript" src="main.js"></script>
-  </body>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>3JS Racing Game</title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    canvas { display: block; }
+    #ui {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 10;
+      background: rgba(0,0,0,0.5);
+      padding: 10px;
+      color: white;
+    }
+    button { margin-right: 10px; }
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <span>Select Vehicle:</span>
+    <button onclick="selectVehicle('red')">Red</button>
+    <button onclick="selectVehicle('blue')">Blue</button>
+    <button onclick="selectVehicle('green')">Green</button>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+    import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+    import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js';
+
+    let scene, camera, renderer, world, vehicle, chassisBody, vehicleMesh;
+    const keys = {};
+
+    init();
+    animate();
+
+    function init(){
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xaaddff);
+      camera = new THREE.PerspectiveCamera(75,innerWidth/innerHeight,0.1,1000);
+      renderer = new THREE.WebGLRenderer({antialias:true});
+      renderer.setSize(innerWidth,innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      const light = new THREE.DirectionalLight(0xffffff,1);
+      light.position.set(10,20,10); scene.add(light);
+      scene.add(new THREE.AmbientLight(0xffffff,0.3));
+
+      world = new CANNON.World();
+      world.gravity.set(0,-9.82,0);
+
+      const groundMat = new CANNON.Material();
+      const groundBody = new CANNON.Body({ mass:0, material:groundMat });
+      groundBody.addShape(new CANNON.Plane());
+      groundBody.quaternion.setFromEuler(-Math.PI/2,0,0);
+      world.addBody(groundBody);
+
+      const groundMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(200, 200),
+        new THREE.MeshStandardMaterial({ color: 0x228822 })
+      );
+      groundMesh.rotation.x = -Math.PI / 2;
+      scene.add(groundMesh);
+
+      chassisBody = new CANNON.Body({ mass:150 });
+      chassisBody.addShape(new CANNON.Box(new CANNON.Vec3(1,0.5,2)));
+      chassisBody.position.set(0,1,0);
+      world.addBody(chassisBody);
+
+      vehicle = new CANNON.RaycastVehicle({
+        chassisBody,
+        indexForwardAxis: 2,
+        indexRightAxis: 0,
+        indexUpAxis: 1
+      });
+
+      const wheelPositions = [
+        new CANNON.Vec3(-1,0,1.5),
+        new CANNON.Vec3(1,0,1.5),
+        new CANNON.Vec3(-1,0,-1.5),
+        new CANNON.Vec3(1,0,-1.5),
+      ];
+      wheelPositions.forEach((pos)=>{
+        vehicle.addWheel({
+          chassisConnectionPointLocal: pos,
+          directionLocal: new CANNON.Vec3(0,-1,0),
+          axleLocal: new CANNON.Vec3(-1,0,0),
+          suspensionStiffness: 30,
+          frictionSlip: 4,
+          radius:0.4,
+          dampingRelaxation:2,
+          dampingCompression:4,
+          maxSuspensionForce:100000,
+          rollInfluence:0.01,
+          maxSuspensionTravel:0.3
+        });
+      });
+      vehicle.addToWorld(world);
+
+      const loader = new GLTFLoader();
+      loader.load('https://rawcdn.githack.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumMilkTruck/glTF-Binary/CesiumMilkTruck.glb', gltf => {
+        vehicleMesh = gltf.scene;
+        vehicleMesh.scale.set(0.5, 0.5, 0.5);
+        scene.add(vehicleMesh);
+      });
+
+      window.addEventListener('keydown', e => keys[e.code] = true);
+      window.addEventListener('keyup', e => keys[e.code] = false);
+    }
+
+    function animate(){
+      requestAnimationFrame(animate);
+
+      const maxForce = 1500;
+      const steerMax = 0.5;
+
+      if(keys.KeyW) {
+        vehicle.applyEngineForce(-maxForce, 2);
+        vehicle.applyEngineForce(-maxForce, 3);
+      } else if(keys.KeyS) {
+        vehicle.applyEngineForce(maxForce, 2);
+        vehicle.applyEngineForce(maxForce, 3);
+      } else {
+        vehicle.applyEngineForce(0, 2);
+        vehicle.applyEngineForce(0, 3);
+      }
+
+      if(keys.KeyA) {
+        vehicle.setSteeringValue(steerMax, 0);
+        vehicle.setSteeringValue(steerMax, 1);
+      } else if(keys.KeyD) {
+        vehicle.setSteeringValue(-steerMax, 0);
+        vehicle.setSteeringValue(-steerMax, 1);
+      } else {
+        vehicle.setSteeringValue(0, 0);
+        vehicle.setSteeringValue(0, 1);
+      }
+
+      vehicle.wheelInfos[2].frictionSlip = vehicle.wheelInfos[3].frictionSlip =
+        (Math.abs(chassisBody.velocity.length()) > 5 && Math.abs(vehicle.wheelInfos[0].steering) > 0) ? 1 : 4;
+
+      world.step(1/60);
+
+      if(vehicleMesh){
+        vehicleMesh.position.copy(chassisBody.position);
+        vehicleMesh.quaternion.copy(chassisBody.quaternion);
+      }
+
+      camera.position.lerp(new THREE.Vector3(
+        chassisBody.position.x,
+        chassisBody.position.y + 3,
+        chassisBody.position.z + 6), 0.1);
+      camera.lookAt(vehicleMesh?.position || new THREE.Vector3());
+
+      renderer.render(scene,camera);
+    }
+
+    // Vehicle color switching (basic)
+    window.selectVehicle = function (color) {
+      if (!vehicleMesh) return;
+      vehicleMesh.traverse(child => {
+        if (child.isMesh && child.material?.color) {
+          child.material.color.set(color);
+        }
+      });
+    }
+  </script>
+</body>
 </html>
