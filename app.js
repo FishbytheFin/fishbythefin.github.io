@@ -1,5 +1,5 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js';
-import { getFirestore, collection, doc, onSnapshot, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js';
+import { getFirestore, collection, doc, getDocFromServer, onSnapshot, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js';
 
 const db = getFirestore(initializeApp({
   apiKey: 'AIzaSyDjZAuCZwnybM2IFOFl3Iy2U2WCH3ZCQW4',
@@ -85,7 +85,7 @@ function render() {
   empty.textContent = gifts.length ? 'All gifts are covered. Thank you!' : 'The gift list is coming soon.';
 }
 async function purchase(gift) {
-  if (!ready || pending.has(gift.id) || !window.confirm(`Mark “${gift.name}” as purchased? Please confirm only once you have bought it. Contact the registry owner if you need to undo this.`)) return;
+  if (!ready || purchased.has(gift.id) || pending.has(gift.id) || !window.confirm(`Mark “${gift.name}” as purchased? Please confirm only once you have bought it. Contact the registry owner if you need to undo this.`)) return;
   pending.add(gift.id);
   render();
   try {
@@ -99,9 +99,23 @@ async function purchase(gift) {
     purchased.add(gift.id);
     status.textContent = result ? `Thank you! “${gift.name}” is marked as purchased.` : `Someone has already marked “${gift.name}” as purchased.`;
   } catch (error) {
-    status.textContent = error.code === 'permission-denied'
-      ? 'The purchase could not be saved. The registry owner needs to check the Firestore rules. Refresh to check its latest status.'
-      : 'The purchase could not be confirmed. Check your connection and try again.';
+    // A competing create can be rejected by the create-only security rules.
+    // Read the server before interpreting that rejection as a failed purchase.
+    try {
+      const existing = await getDocFromServer(doc(db, 'purchases', gift.id));
+      if (existing.exists()) {
+        purchased.add(gift.id);
+        status.textContent = `Someone has already marked “${gift.name}” as purchased.`;
+      } else {
+        purchased.delete(gift.id);
+        status.textContent = error.code === 'permission-denied'
+          ? 'The purchase could not be saved. The registry owner needs to check the Firestore rules.'
+          : 'The purchase was not saved. Please try again.';
+      }
+    } catch {
+      ready = false;
+      status.textContent = 'Purchase status could not be verified. Check your connection and refresh before trying again.';
+    }
   } finally {
     pending.delete(gift.id);
     render();
@@ -116,8 +130,11 @@ try {
   for (const gift of gifts) if (gift.url) new URL(gift.url);
   render();
   onSnapshot(collection(db, 'purchases'), { includeMetadataChanges: true }, snapshot => {
-    // Only display committed purchases. Cached data must not enable purchasing.
-    purchased = new Set(snapshot.docs.filter(item => !item.metadata.hasPendingWrites).map(item => item.id));
+    // Optimistic writes and their rollbacks must not erase confirmed purchases.
+    // Only a complete, settled server snapshot can replace the shared state.
+    if (!snapshot.metadata.fromCache && !snapshot.metadata.hasPendingWrites) {
+      purchased = new Set(snapshot.docs.map(item => item.id));
+    }
     ready = !snapshot.metadata.fromCache;
     status.textContent = ready ? 'Purchase status is up to date. No sign-in needed.' : 'Connecting… purchase status may be out of date.';
     render();
