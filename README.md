@@ -13,6 +13,18 @@ No collection needs to be manually created. The first successful purchase create
 
 To undo a mistaken purchase, delete `purchases/<gift-id>` in the Firebase console. A confirmation prompt helps prevent accidental clicks. Transactions prevent simultaneous claims from overwriting one another. Offline clients cannot confirm a purchase.
 
+## Update gift IDs in the rules
+
+After editing `gifts.json`, run:
+
+```sh
+python3 update_rules.py
+```
+
+The script updates only the allowed gift IDs in `firestore.rules`, preserving the other rules. It rejects invalid or duplicate IDs before writing. It works from any directory when invoked using its path and needs no installed packages.
+
+Then copy the updated `firestore.rules` into **Firebase Console → Firestore Database → Rules** and click **Publish**. Running the script or pushing to GitHub does not publish Firebase rules.
+
 ## Preview and verify
 
 Run `python3 -m http.server 8000` from this directory and open http://localhost:8000. The preview uses the real Firebase database, so any purchase marks are real.
