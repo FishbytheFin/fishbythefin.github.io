@@ -58,8 +58,11 @@ function render() {
       }
     }
     card.append(media);
-    card.append(element('span', bought ? '✓ Purchased' : ready ? 'Available' : 'Checking…', 'badge'), element('h2', gift.name), element('p', gift.description, 'description'));
-    if (gift.price) card.append(element('p', gift.price, 'price'));
+    card.append(element('span', bought ? '✓ Purchased' : ready ? 'Available' : 'Checking…', 'badge'), element('h2', gift.name), element('p', gift.description ?? '', 'description'));
+    if (gift.price !== undefined && gift.price !== null && String(gift.price).trim()) {
+      const price = String(gift.price).trim().replace(/^\$+\s*/, '');
+      card.append(element('p', `$${price}`, 'price'));
+    }
     if (gift.url) {
       const url = new URL(gift.url);
       if (['https:', 'http:'].includes(url.protocol)) {
@@ -109,7 +112,7 @@ try {
   const response = await fetch('./gifts.json');
   if (!response.ok) throw new Error('Gift list unavailable');
   gifts = await response.json();
-  if (!Array.isArray(gifts) || gifts.some(gift => !/^[a-z0-9-]+$/.test(gift.id) || typeof gift.name !== 'string' || typeof gift.description !== 'string') || new Set(gifts.map(gift => gift.id)).size !== gifts.length) throw new Error('Invalid gift list');
+  if (!Array.isArray(gifts) || gifts.some(gift => !gift || typeof gift.id !== 'string' || !/^[a-z0-9-]+$/.test(gift.id) || typeof gift.name !== 'string' || (gift.description != null && typeof gift.description !== 'string')) || new Set(gifts.map(gift => gift.id)).size !== gifts.length) throw new Error('Invalid gift list');
   for (const gift of gifts) if (gift.url) new URL(gift.url);
   render();
   onSnapshot(collection(db, 'purchases'), { includeMetadataChanges: true }, snapshot => {
@@ -123,6 +126,7 @@ try {
     status.textContent = 'Purchase status is unavailable. Check your connection, or ask the registry owner to publish the Firestore rules, then refresh.';
     render();
   });
-} catch {
+} catch (error) {
+  console.error('Unable to load gift list:', error);
   status.textContent = 'The gift list could not be loaded. Please refresh or ask the registry owner to check gifts.json.';
 }
