@@ -4,7 +4,7 @@ service cloud.firestore {
     match /purchases/{giftId} {
       allow read: if true;
       // Keep this list in sync with the IDs in gifts.json.
-      allow create: if giftId in ['pixel-wave', 'dolphin-sweater', 'cozy-blanket']
+      allow create: if giftId in ['pixel-wave', 'dolphin-sweater', 'dac', 'clock', 'duck', 'banana', 'rucksack', 'goods', 'beanie']
         && request.resource.data.keys().hasAll(['purchasedAt'])
         && request.resource.data.keys().hasOnly(['purchasedAt'])
         && request.resource.data.purchasedAt == request.time;
