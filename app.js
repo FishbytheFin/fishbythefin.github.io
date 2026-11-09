@@ -33,6 +33,31 @@ function render() {
     const bought = purchased.has(gift.id);
     if (filter.checked && bought) continue;
     const card = element('article', '', `gift${bought ? ' purchased' : ''}`);
+    const media = element('div', '', 'gift-image');
+    const placeholder = element('span', 'No image yet');
+    media.append(placeholder);
+    if (typeof gift.image === 'string' && gift.image.trim()) {
+      try {
+        const imageUrl = new URL(gift.image, document.baseURI);
+        if (['https:', 'http:'].includes(imageUrl.protocol)) {
+          const image = document.createElement('img');
+          image.alt = gift.imageAlt || gift.name;
+          image.loading = 'lazy';
+          image.decoding = 'async';
+          image.addEventListener('load', () => { placeholder.hidden = true; });
+          image.addEventListener('error', () => {
+            image.remove();
+            placeholder.hidden = false;
+            placeholder.textContent = 'Image unavailable';
+          });
+          image.src = imageUrl.href;
+          media.append(image);
+        }
+      } catch {
+        placeholder.textContent = 'Image unavailable';
+      }
+    }
+    card.append(media);
     card.append(element('span', bought ? '✓ Purchased' : ready ? 'Available' : 'Checking…', 'badge'), element('h2', gift.name), element('p', gift.description, 'description'));
     if (gift.price) card.append(element('p', gift.price, 'price'));
     if (gift.url) {

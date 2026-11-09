@@ -13,6 +13,26 @@ No collection needs to be manually created. The first successful purchase create
 
 To undo a mistaken purchase, delete `purchases/<gift-id>` in the Firebase console. A confirmation prompt helps prevent accidental clicks. Transactions prevent simultaneous claims from overwriting one another. Offline clients cannot confirm a purchase.
 
+## Gift images
+
+Add an optional `image` field to any gift in `gifts.json`:
+
+```json
+{
+  "id": "pixel-wave",
+  "name": "Pixel Wave Sweater",
+  "description": "",
+  "price": "83.97",
+  "url": "https://vapor95.com/products/great-pixel-wave",
+  "image": "images/pixel-wave.jpg",
+  "imageAlt": "Pixel Wave sweater viewed from the front"
+}
+```
+
+Use a relative path to an image committed in this repo (such as `images/pixel-wave.jpg`), or a direct HTTPS image URL. `imageAlt` is optional and defaults to the gift name. Use a direct image URL, not a product page URL.
+
+All cards reserve a 220px-tall image container with the same width within each responsive grid layout. Images scale proportionally to fit without cropping or stretching. Missing or broken images show a placeholder. Adding images does not require updating Firestore rules.
+
 ## Update gift IDs in the rules
 
 After editing `gifts.json`, run:
