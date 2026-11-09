@@ -136,7 +136,7 @@ try {
       purchased = new Set(snapshot.docs.map(item => item.id));
     }
     ready = !snapshot.metadata.fromCache;
-    status.textContent = ready ? 'Purchase status is up to date. No sign-in needed.' : 'Connecting… purchase status may be out of date.';
+    status.textContent = ready ? 'Purchase status is up to date.' : 'Connecting… purchase status may be out of date.';
     render();
   }, () => {
     ready = false;
